@@ -1,0 +1,190 @@
+/* =====================================================================
+   "Green Room" design system — AI Interview Preparation Platform
+   ---------------------------------------------------------------------
+   Concept: the app is the rehearsal space before the real performance
+   (the actual interview). The signature motif is the backstage "cue
+   light" — the two-colour lamp a stage manager uses to tell a performer
+   STANDBY (amber/red) vs LIVE (green). We reuse that as the platform's
+   one memorable visual signature: session/status states throughout the
+   app borrow its colour language instead of generic red/green alerts.
+   ===================================================================== */
+
+:root {
+  --ink: #0F1513;
+  --panel: #1A2321;
+  --panel-2: #212C29;
+  --hair: #2C3835;
+  --hair-strong: #3A4844;
+
+  --paper: #EDEAE0;
+  --muted: #9BB0A9;
+  --muted-dim: #6E8981;
+
+  --jade: #2F7A54;
+  --jade-mid: #3C8F63;
+  --jade-bright: #63BE8B;
+  --jade-pale: #8ED1AA;
+  --jade-wash: rgba(99, 190, 139, 0.12);
+
+  --brass: #C9A24B;
+  --brass-bright: #DDBB68;
+  --brass-pale: #EACB8B;
+
+  --brick: #B23A32;
+  --brick-bright: #D9695F;
+}
+
+html, body {
+  background-color: var(--ink);
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+h1, h2, h3, .font-display {
+  font-family: 'Fraunces', ui-serif, Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+.font-mono, .eyebrow, .cue-light {
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+.eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+}
+
+/* ---------------------------------------------------------------------
+   Cue light — the signature element.
+   States: standby (amber, waiting), live (jade, active/recording),
+   stop (brick, ended/error). Used in the navbar, on the interview page
+   when a session is active, and anywhere else a status needs to read
+   at a glance.
+   --------------------------------------------------------------------- */
+.cue-light {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cue-light .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--muted-dim);
+  box-shadow: 0 0 0 3px rgba(155, 176, 169, 0.12);
+}
+
+.cue-light.is-standby .dot {
+  background: var(--brass);
+  box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.18);
+  animation: cue-pulse 2.2s ease-in-out infinite;
+}
+
+.cue-light.is-live .dot {
+  background: var(--jade-bright);
+  box-shadow: 0 0 0 3px rgba(99, 190, 139, 0.22);
+  animation: cue-pulse 1.4s ease-in-out infinite;
+}
+
+.cue-light.is-stop .dot {
+  background: var(--brick-bright);
+  box-shadow: 0 0 0 3px rgba(217, 105, 95, 0.18);
+}
+
+@keyframes cue-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cue-light .dot { animation: none !important; }
+}
+
+/* ---------------------------------------------------------------------
+   Shared surfaces & components
+   --------------------------------------------------------------------- */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 14px;
+}
+
+.field-input {
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--hair-strong);
+  color: var(--paper);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--jade-mid);
+  box-shadow: 0 0 0 3px var(--jade-wash);
+}
+
+.btn-primary {
+  background: var(--jade);
+  color: var(--paper);
+  font-weight: 500;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+.btn-primary:hover { background: var(--jade-mid); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 500;
+  border-radius: 8px;
+  transition: opacity 0.15s ease;
+}
+.btn-secondary:hover { opacity: 0.9; }
+
+.btn-outline {
+  background: transparent;
+  color: var(--paper);
+  border: 1px solid var(--hair-strong);
+  border-radius: 8px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.btn-outline:hover { border-color: var(--jade-mid); background: var(--jade-wash); }
+
+.link-accent { color: var(--jade-pale); }
+.link-accent:hover { text-decoration: underline; }
+
+.badge-premium {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brass);
+  background: rgba(201, 162, 75, 0.1);
+  border: 1px solid rgba(201, 162, 75, 0.3);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+}
+
+::selection {
+  background: var(--jade);
+  color: var(--paper);
+}
+
+/* Focus visibility floor for keyboard users, in case a component doesn't
+   define its own focus style. */
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--jade-bright);
+  outline-offset: 2px;
+}

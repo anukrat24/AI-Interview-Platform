@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Login · AI Interview Platform</title>
+<th:block th:replace="~{fragments/head :: theme-head}"></th:block>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+<div class="min-h-screen grid lg:grid-cols-[minmax(0,1fr)_440px]">
+
+  <!-- Left: identity panel -->
+  <div class="hidden lg:flex flex-col justify-between p-12 border-r border-slate-800 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.06]"
+         style="background-image: repeating-linear-gradient(180deg, transparent, transparent 27px, #EDEAE0 28px);"></div>
+    <div class="relative">
+      <span class="cue-light is-standby"><span class="dot"></span>Standby</span>
+      <h1 class="font-display text-5xl leading-[1.1] mt-8 max-w-md">
+        Back for another take.
+      </h1>
+      <p class="text-slate-400 mt-5 max-w-sm leading-relaxed">
+        Pick up where you left off — your interview history, resume scores,
+        and roadmap are all waiting on the dashboard.
+      </p>
+    </div>
+    <div class="relative text-sm text-slate-500 max-w-sm">
+      New here? <a href="/register" class="link-accent">Create an account</a> instead.
+    </div>
+  </div>
+
+  <!-- Right: form -->
+  <div class="flex items-center justify-center p-6 sm:p-10">
+    <div class="w-full max-w-sm">
+      <div class="eyebrow mb-3">Returning talent</div>
+      <h2 class="font-display text-3xl mb-1">Welcome back</h2>
+      <p class="text-slate-400 text-sm mb-7">Sign in to continue your mock interview prep.</p>
+
+      <a href="/oauth2/authorization/google"
+         class="btn-secondary w-full flex items-center justify-center gap-2 py-2.5 mb-5">
+        Continue with Google
+      </a>
+
+      <div class="flex items-center gap-3 mb-5">
+        <div class="h-px bg-slate-800 flex-1"></div>
+        <span class="text-xs text-slate-500 font-mono">or</span>
+        <div class="h-px bg-slate-800 flex-1"></div>
+      </div>
+
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="text-sm text-slate-300">Email</label>
+          <input type="email" id="email" required class="field-input mt-1" />
+        </div>
+        <div>
+          <label class="text-sm text-slate-300">Password</label>
+          <input type="password" id="password" required class="field-input mt-1" />
+        </div>
+
+        <div id="otpBlock" class="hidden">
+          <label class="text-sm text-slate-300">OTP (check your email)</label>
+          <input type="text" id="otp" class="field-input mt-1" />
+        </div>
+
+        <p id="message" class="text-sm"></p>
+
+        <button type="submit" class="btn-primary w-full py-2.5">
+          Continue
+        </button>
+      </form>
+
+      <div class="flex justify-between text-sm text-slate-400 mt-6">
+        <a href="/register" class="link-accent">Create account</a>
+        <a href="/forgot-password" class="link-accent">Forgot password?</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  // Surface OAuth failures redirected back with ?error=
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("error") === "banned") {
+    document.addEventListener("DOMContentLoaded", () => {
+      const msg = document.getElementById("message");
+      msg.textContent = "This account has been suspended.";
+      msg.className = "text-sm text-red-400";
+    });
+  } else if (params.get("error") === "oauth") {
+    document.addEventListener("DOMContentLoaded", () => {
+      const msg = document.getElementById("message");
+      msg.textContent = "Google sign-in failed. Please try again.";
+      msg.className = "text-sm text-red-400";
+    });
+  }
+
+  const form = document.getElementById("loginForm");
+  const messageEl = document.getElementById("message");
+  const otpBlock = document.getElementById("otpBlock");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    messageEl.textContent = "";
+    messageEl.className = "text-sm";
+
+    const payload = {
+      email: document.getElementById("email").value,
+      password: document.getElementById("password").value,
+      otp: document.getElementById("otp").value || null
+    };
+
+    try {
+      const res = await fetch("/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.token) {
+        window.location.href = "/dashboard";
+        return;
+      }
+
+      messageEl.textContent = data.message || "Something went wrong";
+      const isOtpStep = data.message && data.message.toLowerCase().includes("otp sent");
+      messageEl.classList.add(isOtpStep ? "text-amber-400" : "text-red-400");
+      if (data.message && data.message.toLowerCase().includes("otp")) {
+        otpBlock.classList.remove("hidden");
+      }
+    } catch (err) {
+      messageEl.textContent = "Network error. Please try again.";
+      messageEl.classList.add("text-red-400");
+    }
+  });
+</script>
+</body>
+</html>

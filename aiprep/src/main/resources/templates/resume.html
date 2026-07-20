@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resume Analyzer · AI Interview Platform</title>
+<th:block th:replace="~{fragments/head :: theme-head}"></th:block>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="max-w-2xl mx-auto px-6 py-10 space-y-6">
+  <h1 class="text-2xl font-semibold">Resume Analyzer</h1>
+  <p class="text-slate-400 text-sm">Upload a PDF resume to get an ATS score, missing keywords, and improvement suggestions.</p>
+
+  <form id="resumeForm" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4" enctype="multipart/form-data">
+    <div>
+      <label class="text-sm text-slate-300">Target role</label>
+      <input type="text" id="targetRole" value="Java Developer"
+             class="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700" />
+    </div>
+    <div>
+      <label class="text-sm text-slate-300">Resume (PDF, max 5MB)</label>
+      <input type="file" id="file" accept="application/pdf" required
+             class="w-full mt-1 text-sm text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-slate-800 file:text-slate-200" />
+    </div>
+    <button type="submit" class="w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition font-medium">
+      Analyze resume
+    </button>
+    <p id="message" class="text-sm"></p>
+  </form>
+
+  <div id="result" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3"></div>
+</main>
+
+<script>
+  const form = document.getElementById("resumeForm");
+  const messageEl = document.getElementById("message");
+  const resultEl = document.getElementById("result");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    messageEl.textContent = "Extracting text and analyzing with AI...";
+    messageEl.className = "text-sm text-amber-400";
+    resultEl.classList.add("hidden");
+
+    const formData = new FormData();
+    formData.append("file", document.getElementById("file").files[0]);
+    formData.append("targetRole", document.getElementById("targetRole").value);
+
+    try {
+      const res = await fetch("/api/resume", { method: "POST", credentials: "include", body: formData });
+      if (res.status === 401 || res.status === 403) { window.location.href = "/login"; return; }
+      const data = await res.json();
+
+      if (!res.ok) {
+        messageEl.textContent = data.message || "Could not analyze resume";
+        messageEl.className = "text-sm text-red-400";
+        return;
+      }
+
+      messageEl.textContent = "";
+      resultEl.classList.remove("hidden");
+      resultEl.innerHTML = `
+        <p class="text-lg font-semibold text-indigo-300">ATS Score: ${data.atsScore}/100</p>
+        <div>
+          <p class="font-medium text-sm mb-1">Missing keywords</p>
+          <p class="text-sm text-slate-300">${data.missingKeywords.join(", ") || "None found"}</p>
+        </div>
+        <div>
+          <p class="font-medium text-sm mb-1">Weak points</p>
+          <p class="text-sm text-slate-300">${data.weakPoints}</p>
+        </div>
+        <div>
+          <p class="font-medium text-sm mb-1">Suggestions</p>
+          <p class="text-sm text-slate-300">${data.improvementSuggestions}</p>
+        </div>
+      `;
+    } catch (err) {
+      messageEl.textContent = "Network error. Please try again.";
+      messageEl.className = "text-sm text-red-400";
+    }
+  });
+</script>
+</body>
+</html>

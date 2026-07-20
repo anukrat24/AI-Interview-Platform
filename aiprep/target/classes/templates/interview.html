@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mock Interview · AI Interview Platform</title>
+<th:block th:replace="~{fragments/head :: theme-head}"></th:block>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="max-w-3xl mx-auto px-6 py-10 space-y-6" id="questionsContainer">
+  <p class="text-slate-500 text-sm">Loading interview...</p>
+</main>
+
+<script>
+  const interviewId = window.location.pathname.split("/").pop();
+  const container = document.getElementById("questionsContainer");
+  const recognitionSupported = "webkitSpeechRecognition" in window || "SpeechRecognition" in window;
+
+  async function loadInterview() {
+    // after
+    const res = await fetch(`/api/interviews/${interviewId}`, { credentials: "include" });
+    if (res.status === 401 || res.status === 403) { window.location.href = "/login"; return; }
+    const data = await res.json();
+    if (!res.ok) {
+      container.innerHTML = `<p class="text-red-400">${data.message || "Could not load this interview."}</p>`;
+      return;
+    }
+    render(data);
+  }
+
+  function speak(text) {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function render(data) {
+    container.innerHTML = `<h1 class="text-2xl font-semibold mb-2">${data.role} · ${data.interviewType}</h1>
+      <p class="text-slate-400 mb-6">${data.experienceLevel}${data.overallScore != null ? " · Overall score: " + data.overallScore + "/10" : ""}</p>`;
+
+    if (!recognitionSupported) {
+      const note = document.createElement("p");
+      note.className = "text-xs text-slate-500 mb-4";
+      note.textContent = "Voice input isn't supported in this browser - try Chrome for the microphone feature. You can still type your answers.";
+      container.appendChild(note);
+    }
+
+    data.questions.forEach((q, idx) => {
+      const card = document.createElement("div");
+      card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3";
+      card.innerHTML = `
+        <div class="flex justify-between items-start gap-3">
+          <div>
+            <p class="text-xs uppercase tracking-wide text-indigo-400">Question ${idx + 1} · ${q.difficulty}</p>
+            <p class="font-medium mt-1">${q.questionText}</p>
+          </div>
+          <button data-text="${encodeURIComponent(q.questionText)}" class="speakBtn shrink-0 text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700">
+            🔊 Listen
+          </button>
+        </div>
+        <textarea id="answer-${q.questionId}" rows="4"
+          class="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="Type your answer, or use the mic below..."></textarea>
+        <div class="flex gap-2">
+          <button data-qid="${q.questionId}" class="submitBtn px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium">
+            Get AI feedback
+          </button>
+          ${recognitionSupported ? `<button data-qid="${q.questionId}" class="micBtn px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm font-medium">🎤 Speak answer</button>` : ""}
+        </div>
+        <div id="feedback-${q.questionId}" class="text-sm"></div>
+      `;
+      container.appendChild(card);
+    });
+
+    const completeBtn = document.createElement("button");
+    completeBtn.textContent = "Finish interview & get overall score";
+    completeBtn.className = "w-full py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-medium";
+    completeBtn.addEventListener("click", finishInterview);
+    container.appendChild(completeBtn);
+
+    document.querySelectorAll(".submitBtn").forEach((btn) => {
+      btn.dataset.voice = "false";
+      btn.addEventListener("click", () => submitAnswer(btn.dataset.qid, btn.dataset.voice === "true"));
+    });
+    document.querySelectorAll(".speakBtn").forEach((btn) => {
+      btn.addEventListener("click", () => speak(decodeURIComponent(btn.dataset.text)));
+    });
+    document.querySelectorAll(".micBtn").forEach((btn) => {
+      btn.addEventListener("click", () => startVoiceInput(btn));
+    });
+  }
+
+  function startVoiceInput(button) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+
+    const textarea = document.getElementById(`answer-${button.dataset.qid}`);
+    const submitBtn = document.querySelector(`.submitBtn[data-qid="${button.dataset.qid}"]`);
+
+    button.textContent = "🎙️ Listening...";
+    button.disabled = true;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      textarea.value = (textarea.value ? textarea.value + " " : "") + transcript;
+      if (submitBtn) submitBtn.dataset.voice = "true";
+    };
+    recognition.onerror = () => {
+      button.textContent = "🎤 Speak answer";
+      button.disabled = false;
+    };
+    recognition.onend = () => {
+      button.textContent = "🎤 Speak answer";
+      button.disabled = false;
+    };
+    recognition.start();
+  }
+
+  async function submitAnswer(questionId, wasVoiceInput) {
+    const textarea = document.getElementById(`answer-${questionId}`);
+    const feedbackEl = document.getElementById(`feedback-${questionId}`);
+    feedbackEl.textContent = "Evaluating your answer with AI...";
+    feedbackEl.className = "text-sm text-amber-400";
+
+    const res = await fetch(`/api/interviews/${interviewId}/answers`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ questionId: parseInt(questionId, 10), answerText: textarea.value, voiceInput: !!wasVoiceInput })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      feedbackEl.textContent = data.message || "Could not evaluate answer";
+      feedbackEl.className = "text-sm text-red-400";
+      return;
+    }
+
+    feedbackEl.className = "text-sm text-slate-300 space-y-1 border-t border-slate-800 pt-3 mt-2";
+    feedbackEl.innerHTML = `
+      <p class="font-semibold text-indigo-300">Score: ${data.scoreOutOf10}/10</p>
+      <p>Technical correctness: ${data.technicalCorrectness}/10 · Communication: ${data.communication}/10 · Keyword coverage: ${data.keywordCoverage}/10</p>
+      <p class="mt-2"><span class="font-medium">Suggestions:</span> ${data.suggestions}</p>
+      <p class="mt-2"><span class="font-medium">Sample answer:</span> ${data.sampleAnswer}</p>
+    `;
+  }
+
+  async function finishInterview() {
+    const res = await fetch(`/api/interviews/${interviewId}/complete`, { method: "POST", credentials: "include" });
+    if (res.ok) window.location.href = "/dashboard";
+  }
+
+  loadInterview();
+</script>
+</body>
+</html>

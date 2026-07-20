@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Roadmap · AI Interview Platform</title>
+<th:block th:replace="~{fragments/head :: theme-head}"></th:block>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="max-w-2xl mx-auto px-6 py-10 space-y-6">
+  <h1 class="text-2xl font-semibold">AI Roadmap Generator</h1>
+  <p class="text-slate-400 text-sm">Tell us where you're at and where you want to go - we'll generate a study plan.</p>
+
+  <form id="roadmapForm" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+    <div>
+      <label class="text-sm text-slate-300">Current skills</label>
+      <textarea id="currentSkills" rows="3" required placeholder="e.g. Java, Spring Boot, basic SQL, 1 year of experience"
+        class="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700"></textarea>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="text-sm text-slate-300">Target role</label>
+        <input type="text" id="targetRole" required placeholder="e.g. Backend Engineer"
+               class="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700" />
+      </div>
+      <div>
+        <label class="text-sm text-slate-300">Target company (optional)</label>
+        <input type="text" id="targetCompany" placeholder="e.g. Amazon"
+               class="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700" />
+      </div>
+    </div>
+    <button type="submit" class="w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition font-medium">
+      Generate roadmap
+    </button>
+    <p id="message" class="text-sm"></p>
+  </form>
+
+  <div id="result" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 prose prose-invert prose-sm max-w-none"></div>
+</main>
+
+<script>
+  const form = document.getElementById("roadmapForm");
+  const messageEl = document.getElementById("message");
+  const resultEl = document.getElementById("result");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    messageEl.textContent = "Generating your roadmap with AI...";
+    messageEl.className = "text-sm text-amber-400";
+    resultEl.classList.add("hidden");
+
+    const payload = {
+      currentSkills: document.getElementById("currentSkills").value,
+      targetRole: document.getElementById("targetRole").value,
+      targetCompany: document.getElementById("targetCompany").value
+    };
+
+    try {
+      const res = await fetch("/api/roadmap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload)
+      });
+      if (res.status === 401 || res.status === 403) { window.location.href = "/login"; return; }
+      const data = await res.json();
+
+      if (!res.ok) {
+        messageEl.textContent = data.message || "Could not generate roadmap";
+        messageEl.className = "text-sm text-red-400";
+        return;
+      }
+
+      messageEl.textContent = "";
+      resultEl.classList.remove("hidden");
+      resultEl.innerHTML = marked.parse(data.generatedPlan);
+    } catch (err) {
+      messageEl.textContent = "Network error. Please try again.";
+      messageEl.className = "text-sm text-red-400";
+    }
+  });
+</script>
+</body>
+</html>

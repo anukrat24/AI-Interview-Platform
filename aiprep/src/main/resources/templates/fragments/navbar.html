@@ -1,0 +1,53 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="navbar">
+<nav class="border-b border-slate-800 px-6 py-3.5 flex justify-between items-center bg-slate-950/95 backdrop-blur sticky top-0 z-10">
+  <a href="/dashboard" class="flex items-center gap-3 group">
+    <span class="font-display text-lg text-slate-100 tracking-tight">Aiprep</span>
+    <span id="navCueLight" class="cue-light is-standby"><span class="dot"></span>Standby</span>
+  </a>
+  <div class="flex items-center gap-6 text-sm">
+    <a href="/dashboard" class="text-slate-400 hover:text-slate-100 transition">Dashboard</a>
+    <a href="/resume" class="text-slate-400 hover:text-slate-100 transition">Resume</a>
+    <a href="/coding" class="text-slate-400 hover:text-slate-100 transition">Coding</a>
+    <a href="/roadmap" class="text-slate-400 hover:text-slate-100 transition">Roadmap</a>
+    <a href="/pricing" class="text-slate-400 hover:text-slate-100 transition">Pricing</a>
+    <a id="adminLink" href="/admin" class="hidden text-amber-400 hover:text-amber-300 transition">Admin</a>
+    <button id="navLogoutBtn" class="btn-outline px-3 py-1.5 text-sm">Log out</button>
+  </div>
+</nav>
+<script>
+  // Shared logic for every authenticated page: verify session, show admin link, wire logout.
+  async function initNav() {
+    try {
+      const res = await fetch("/api/users/me", { credentials: "include" });
+      if (res.status === 401 || res.status === 403) {
+        window.location.href = "/login";
+        return null;
+      }
+      const me = await res.json();
+      const adminLink = document.getElementById("adminLink");
+      if (adminLink && me.role === "ADMIN") adminLink.classList.remove("hidden");
+
+      const cue = document.getElementById("navCueLight");
+      if (cue) {
+        cue.classList.remove("is-standby");
+        cue.classList.add("is-live");
+        cue.innerHTML = '<span class="dot"></span>' + (me.subscriptionTier === "PREMIUM" ? "Premium" : "Free tier");
+      }
+      return me;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("navLogoutBtn");
+    if (btn) {
+      btn.addEventListener("click", async () => {
+        await fetch("/api/users/logout", { method: "POST", credentials: "include" });
+        window.location.href = "/login";
+      });
+    }
+    initNav();
+  });
+</script>
+</th:block>
