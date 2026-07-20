@@ -5,73 +5,81 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Login · AI Interview Platform</title>
 <th:block th:replace="~{fragments/head :: theme-head}"></th:block>
+<link rel="stylesheet" href="/css/login.css" />
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen">
-<div class="min-h-screen grid lg:grid-cols-[minmax(0,1fr)_440px]">
+<body>
+<div class="cbl-page">
 
-  <!-- Left: identity panel -->
-  <div class="hidden lg:flex flex-col justify-between p-12 border-r border-slate-800 relative overflow-hidden">
-    <div class="absolute inset-0 opacity-[0.06]"
-         style="background-image: repeating-linear-gradient(180deg, transparent, transparent 27px, #EDEAE0 28px);"></div>
-    <div class="relative">
-      <span class="cue-light is-standby"><span class="dot"></span>Standby</span>
-      <h1 class="font-display text-5xl leading-[1.1] mt-8 max-w-md">
-        Back for another take.
-      </h1>
-      <p class="text-slate-400 mt-5 max-w-sm leading-relaxed">
-        Pick up where you left off — your interview history, resume scores,
-        and roadmap are all waiting on the dashboard.
-      </p>
+  <!-- Left: stat panel -->
+  <div class="cbl-stat-panel">
+    <div class="cbl-eyebrow">Day 42</div>
+    <div>
+      <div class="cbl-stat-number">02</div>
+      <div class="cbl-stat-label">interviews completed<br />this week</div>
     </div>
-    <div class="relative text-sm text-slate-500 max-w-sm">
-      New here? <a href="/register" class="link-accent">Create an account</a> instead.
-    </div>
+    <div class="cbl-streak">streak: 6 days</div>
   </div>
 
   <!-- Right: form -->
-  <div class="flex items-center justify-center p-6 sm:p-10">
-    <div class="w-full max-w-sm">
-      <div class="eyebrow mb-3">Returning talent</div>
-      <h2 class="font-display text-3xl mb-1">Welcome back</h2>
-      <p class="text-slate-400 text-sm mb-7">Sign in to continue your mock interview prep.</p>
+  <div class="cbl-form-panel">
+    <div class="cbl-form-inner">
+      <div class="cbl-form-eyebrow">Returning talent</div>
+      <h1 class="cbl-heading">Back in the room.</h1>
+      <p class="cbl-subtext">Sign in to continue your mock interview prep.</p>
 
-      <a href="/oauth2/authorization/google"
-         class="btn-secondary w-full flex items-center justify-center gap-2 py-2.5 mb-5">
+      <a href="/oauth2/authorization/google" class="cbl-btn-google">
         Continue with Google
       </a>
 
-      <div class="flex items-center gap-3 mb-5">
-        <div class="h-px bg-slate-800 flex-1"></div>
-        <span class="text-xs text-slate-500 font-mono">or</span>
-        <div class="h-px bg-slate-800 flex-1"></div>
+      <div class="cbl-divider">
+        <div class="line"></div>
+        <span>or</span>
+        <div class="line"></div>
       </div>
 
-      <form id="loginForm" class="space-y-4">
-        <div>
-          <label class="text-sm text-slate-300">Email</label>
-          <input type="email" id="email" required class="field-input mt-1" />
-        </div>
-        <div>
-          <label class="text-sm text-slate-300">Password</label>
-          <input type="password" id="password" required class="field-input mt-1" />
+      <form id="loginForm">
+        <div class="cbl-field">
+          <label class="cbl-label" for="email">Email</label>
+          <input type="email" id="email" required class="cbl-input" placeholder="name@company.com" />
         </div>
 
-        <div id="otpBlock" class="hidden">
-          <label class="text-sm text-slate-300">OTP (check your email)</label>
-          <input type="text" id="otp" class="field-input mt-1" />
+        <div class="cbl-field">
+          <label class="cbl-label" for="password">Password</label>
+          <div class="cbl-input-wrap">
+            <input type="password" id="password" required class="cbl-input" />
+            <button type="button" id="togglePassword" class="cbl-toggle-pw" aria-label="Show password" aria-pressed="false">
+              <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.6 21.6 0 0 1 5.06-5.94M9.9 4.24A10.6 10.6 0 0 1 12 4c7 0 11 7 11 7a21.6 21.6 0 0 1-2.61 3.63M14.12 14.12a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <p id="message" class="text-sm"></p>
+        <div id="otpBlock" class="cbl-field" style="display:none;">
+          <label class="cbl-label" for="otp">OTP (check your email)</label>
+          <input type="text" id="otp" class="cbl-input" />
+        </div>
 
-        <button type="submit" class="btn-primary w-full py-2.5">
+        <p id="message" class="cbl-message"></p>
+
+        <button type="submit" class="cbl-btn-primary">
           Continue
         </button>
       </form>
 
-      <div class="flex justify-between text-sm text-slate-400 mt-6">
-        <a href="/register" class="link-accent">Create account</a>
-        <a href="/forgot-password" class="link-accent">Forgot password?</a>
+      <div class="cbl-links">
+        <a href="/register" class="cbl-link">Create account</a>
+        <a href="/forgot-password" class="cbl-link-muted">Forgot password?</a>
       </div>
+
+      <p class="cbl-mobile-footer">
+        New here? <a href="/register" class="cbl-link">Create an account</a> instead.
+      </p>
     </div>
   </div>
 </div>
@@ -83,13 +91,13 @@
     document.addEventListener("DOMContentLoaded", () => {
       const msg = document.getElementById("message");
       msg.textContent = "This account has been suspended.";
-      msg.className = "text-sm text-red-400";
+      msg.classList.add("is-error");
     });
   } else if (params.get("error") === "oauth") {
     document.addEventListener("DOMContentLoaded", () => {
       const msg = document.getElementById("message");
       msg.textContent = "Google sign-in failed. Please try again.";
-      msg.className = "text-sm text-red-400";
+      msg.classList.add("is-error");
     });
   }
 
@@ -100,7 +108,7 @@
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     messageEl.textContent = "";
-    messageEl.className = "text-sm";
+    messageEl.className = "cbl-message";
 
     const payload = {
       email: document.getElementById("email").value,
@@ -124,14 +132,25 @@
 
       messageEl.textContent = data.message || "Something went wrong";
       const isOtpStep = data.message && data.message.toLowerCase().includes("otp sent");
-      messageEl.classList.add(isOtpStep ? "text-amber-400" : "text-red-400");
+      messageEl.classList.add(isOtpStep ? "is-warning" : "is-error");
       if (data.message && data.message.toLowerCase().includes("otp")) {
-        otpBlock.classList.remove("hidden");
+        otpBlock.style.display = "block";
       }
     } catch (err) {
       messageEl.textContent = "Network error. Please try again.";
-      messageEl.classList.add("text-red-400");
+      messageEl.classList.add("is-error");
     }
+  });
+
+  // Show/hide password
+  const toggleBtn = document.getElementById("togglePassword");
+  const passwordInput = document.getElementById("password");
+  toggleBtn.addEventListener("click", () => {
+    const isVisible = passwordInput.type === "text";
+    passwordInput.type = isVisible ? "password" : "text";
+    toggleBtn.classList.toggle("is-visible", !isVisible);
+    toggleBtn.setAttribute("aria-pressed", String(!isVisible));
+    toggleBtn.setAttribute("aria-label", isVisible ? "Show password" : "Hide password");
   });
 </script>
 </body>

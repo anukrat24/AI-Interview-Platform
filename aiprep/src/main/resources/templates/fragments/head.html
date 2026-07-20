@@ -5,38 +5,41 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
-  // "Green Room" palette: remap Tailwind's built-in slate/indigo/amber/emerald/red
+  // "Confidence Block" palette: remap Tailwind's built-in slate/indigo/amber/emerald/red
   // scales to our theme, so every page that already uses those utility classes
   // (bg-slate-950, text-indigo-400, etc.) picks up the new identity automatically.
+  // slate = neutral ink surfaces, indigo = primary accent (lime), amber = premium gold
+  // (unchanged), emerald = true-green success state (kept distinct from the lime accent
+  // so "success" and "primary action" stay visually different), red = danger/error.
   tailwind.config = {
     theme: {
       extend: {
         colors: {
           slate: {
-            50:  '#F4F2EA',
-            100: '#EDEAE0',
-            200: '#C7D3CD',
-            300: '#B9C7C1',
-            400: '#9BB0A9',
-            500: '#7E948C',
-            700: '#2C3835',
-            800: '#212C29',
-            900: '#1A2321',
-            950: '#0F1513'
+            50:  '#F7F7F5',
+            100: '#F2F2F0',
+            200: '#D8D8D5',
+            300: '#B5B5B0',
+            400: '#8A8A87',
+            500: '#6A6A67',
+            700: '#3A3A38',
+            800: '#242423',
+            900: '#1F1F1E',
+            950: '#161616'
           },
           indigo: {
-            300: '#8ED1AA',
-            400: '#63BE8B',
-            500: '#3C8F63',
-            600: '#2F7A54'
+            300: '#DCF07A',
+            400: '#C6EA3E',
+            500: '#CDEE55',
+            600: '#B8DE2E'
           },
           amber: {
             300: '#EACB8B',
             400: '#DDBB68',
             500: '#C9A24B'
           },
-          emerald: { 400: '#63BE8B' },
-          red:     { 400: '#D9695F' }
+          emerald: { 400: '#4ADE80', 500: '#22C55E', 600: '#16A34A' },
+          red:     { 400: '#F09595' }
         },
         fontFamily: {
           sans: ['Inter', 'ui-sans-serif', 'system-ui'],

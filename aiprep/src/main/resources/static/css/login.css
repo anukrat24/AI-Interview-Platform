@@ -1,0 +1,238 @@
+/* =====================================================================
+   "Confidence Block" — login page design
+   ---------------------------------------------------------------------
+   Scoped under .cbl-* so it never touches the global "Green Room" theme
+   used on the rest of the site (dashboard, admin, navbar, etc). Two-tone
+   duotone: a magenta stat panel (your rehearsal streak) next to an ink
+   panel with the form, tied together by a single lime accent.
+   ===================================================================== */
+
+.cbl-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+  background: #161616;
+}
+
+@media (min-width: 1024px) {
+  .cbl-page {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  }
+}
+
+/* ---- Left: stat panel ------------------------------------------------ */
+.cbl-stat-panel {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3rem 2.5rem;
+  background: #D4537E;
+}
+
+@media (min-width: 1024px) {
+  .cbl-stat-panel { display: flex; }
+}
+
+.cbl-eyebrow {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #4B1528;
+  font-weight: 500;
+}
+
+.cbl-stat-number {
+  font-family: 'Fraunces', ui-serif, Georgia, serif;
+  font-size: 4.5rem;
+  line-height: 0.9;
+  font-weight: 700;
+  color: #1A1A18;
+  margin-top: 0.75rem;
+}
+
+.cbl-stat-label {
+  font-size: 0.9rem;
+  color: #4B1528;
+  margin-top: 0.6rem;
+  line-height: 1.4;
+}
+
+.cbl-streak {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: #4B1528;
+}
+
+/* ---- Right: form panel ------------------------------------------------ */
+.cbl-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+}
+
+.cbl-form-inner {
+  width: 100%;
+  max-width: 24rem;
+}
+
+.cbl-form-eyebrow {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #C6EA3E;
+  margin-bottom: 0.6rem;
+}
+
+.cbl-heading {
+  font-family: 'Fraunces', ui-serif, Georgia, serif;
+  font-size: 1.9rem;
+  font-weight: 500;
+  color: #F2F2F0;
+  line-height: 1.15;
+  margin-bottom: 0.4rem;
+}
+
+.cbl-subtext {
+  font-size: 0.9rem;
+  color: #8A8A87;
+  margin-bottom: 1.75rem;
+}
+
+.cbl-btn-google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #3A3A38;
+  background: #1F1F1E;
+  color: #F2F2F0;
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.cbl-btn-google:hover { border-color: #55554F; background: #242423; }
+
+.cbl-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 1.25rem 0;
+}
+.cbl-divider .line { flex: 1; height: 1px; background: #3A3A38; }
+.cbl-divider span {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  color: #6A6A67;
+}
+
+.cbl-field { margin-bottom: 1rem; }
+
+.cbl-label {
+  display: block;
+  font-size: 0.8rem;
+  color: #8A8A87;
+  margin-bottom: 0.4rem;
+}
+
+.cbl-input {
+  width: 100%;
+  background: #1F1F1E;
+  border: 1px solid #3A3A38;
+  color: #F2F2F0;
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.cbl-input:focus {
+  outline: none;
+  border-color: #C6EA3E;
+  box-shadow: 0 0 0 3px rgba(198, 234, 62, 0.16);
+}
+
+.cbl-input-wrap {
+  position: relative;
+}
+.cbl-input-wrap .cbl-input {
+  padding-right: 2.5rem;
+}
+
+.cbl-toggle-pw {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: #8A8A87;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+.cbl-toggle-pw:hover { color: #F2F2F0; }
+.cbl-toggle-pw svg { width: 18px; height: 18px; }
+.cbl-toggle-pw .icon-off { display: none; }
+.cbl-toggle-pw.is-visible .icon-on { display: none; }
+.cbl-toggle-pw.is-visible .icon-off { display: block; }
+
+.cbl-message {
+  font-size: 0.85rem;
+  min-height: 1.2rem;
+  margin: 0.25rem 0 1rem;
+  color: #8A8A87;
+}
+.cbl-message.is-error { color: #F09595; }
+.cbl-message.is-warning { color: #EF9F27; }
+
+.cbl-btn-primary {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: #C6EA3E;
+  color: #1A2E02;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.cbl-btn-primary:hover { background: #B8DE2E; }
+.cbl-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.cbl-links {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-top: 1.5rem;
+}
+.cbl-link { color: #D4537E; }
+.cbl-link:hover { text-decoration: underline; }
+.cbl-link-muted { color: #8A8A87; }
+.cbl-link-muted:hover { color: #F2F2F0; text-decoration: underline; }
+
+.cbl-mobile-footer {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #8A8A87;
+  margin-top: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .cbl-mobile-footer { display: none; }
+}
+
+.cbl-form-panel a:focus-visible,
+.cbl-form-panel button:focus-visible,
+.cbl-form-panel input:focus-visible {
+  outline: 2px solid #C6EA3E;
+  outline-offset: 2px;
+}

@@ -1,37 +1,46 @@
 /* =====================================================================
-   "Green Room" design system — AI Interview Preparation Platform
+   "Confidence Block" design system — AI Interview Preparation Platform
    ---------------------------------------------------------------------
-   Concept: the app is the rehearsal space before the real performance
-   (the actual interview). The signature motif is the backstage "cue
-   light" — the two-colour lamp a stage manager uses to tell a performer
-   STANDBY (amber/red) vs LIVE (green). We reuse that as the platform's
-   one memorable visual signature: session/status states throughout the
-   app borrow its colour language instead of generic red/green alerts.
+   Concept: duotone energy over a calm ink base. Magenta marks progress
+   and stats, lime is the one primary action color (buttons, links,
+   focus), gold stays reserved for premium, and true green is kept
+   separate from lime so a "success" state never gets confused with a
+   plain "click here" button. The backstage cue-light motif carries
+   over from the previous theme, remapped to the new palette.
    ===================================================================== */
 
 :root {
-  --ink: #0F1513;
-  --panel: #1A2321;
-  --panel-2: #212C29;
-  --hair: #2C3835;
-  --hair-strong: #3A4844;
+  --ink: #161616;
+  --panel: #1F1F1E;
+  --panel-2: #242423;
+  --hair: #3A3A38;
+  --hair-strong: #55554F;
 
-  --paper: #EDEAE0;
-  --muted: #9BB0A9;
-  --muted-dim: #6E8981;
+  --paper: #F2F2F0;
+  --muted: #B5B5B0;
+  --muted-dim: #8A8A87;
 
-  --jade: #2F7A54;
-  --jade-mid: #3C8F63;
-  --jade-bright: #63BE8B;
-  --jade-pale: #8ED1AA;
-  --jade-wash: rgba(99, 190, 139, 0.12);
+  --jade: #B8DE2E;
+  --jade-mid: #CDEE55;
+  --jade-bright: #C6EA3E;
+  --jade-pale: #DCF07A;
+  --jade-wash: rgba(198, 234, 62, 0.14);
+  --on-jade: #1A2E02;
+
+  --magenta: #D4537E;
+  --magenta-bright: #E27DA0;
+  --magenta-pale: #F3C7D8;
+  --on-magenta: #4B1528;
 
   --brass: #C9A24B;
   --brass-bright: #DDBB68;
   --brass-pale: #EACB8B;
 
   --brick: #B23A32;
-  --brick-bright: #D9695F;
+  --brick-bright: #E24B4A;
+
+  --live: #22C55E;
+  --live-bright: #4ADE80;
 }
 
 html, body {
@@ -87,8 +96,8 @@ h1, h2, h3, .font-display {
 }
 
 .cue-light.is-live .dot {
-  background: var(--jade-bright);
-  box-shadow: 0 0 0 3px rgba(99, 190, 139, 0.22);
+  background: var(--live-bright);
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.22);
   animation: cue-pulse 1.4s ease-in-out infinite;
 }
 
@@ -133,13 +142,19 @@ h1, h2, h3, .font-display {
 
 .btn-primary {
   background: var(--jade);
-  color: var(--paper);
+  color: var(--on-jade);
   font-weight: 500;
   border-radius: 8px;
   transition: background-color 0.15s ease;
 }
 .btn-primary:hover { background: var(--jade-mid); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Tailwind's bg-indigo-600/500 utilities (used directly in several templates
+   for CTA buttons and the pricing "Recommended" badge) now resolve to the
+   bright lime accent. Dark text is required for contrast, overriding the
+   page's default light text color. */
+.bg-indigo-600, .bg-indigo-500 { color: var(--on-jade); }
 
 .btn-secondary {
   background: var(--paper);
@@ -178,8 +193,8 @@ h1, h2, h3, .font-display {
 }
 
 ::selection {
-  background: var(--jade);
-  color: var(--paper);
+  background: var(--jade-bright);
+  color: var(--on-jade);
 }
 
 /* Focus visibility floor for keyboard users, in case a component doesn't
