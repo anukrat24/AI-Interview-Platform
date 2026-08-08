@@ -1,18 +1,31 @@
 package com.aiprep.interview.service;
 
-import lombok.RequiredArgsConstructor;
+import com.sendgrid.Method;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    @Value("${sendgrid.api-key:}")
+    private String sendGridApiKey;
+
+    @Value("${sendgrid.from-email:no-reply@aiprep.dev}")
+    private String fromEmail;
+
+    @Value("${sendgrid.from-name:AI Interview Platform}")
+    private String fromName;
 
     @Async
     public void sendOtpEmail(String toEmail, String otp) {
@@ -34,15 +47,33 @@ public class EmailService {
     }
 
     private void send(String toEmail, String subject, String text) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(toEmail);
-            message.setSubject(subject);
-            message.setText(text);
-            mailSender.send(message);
-        } catch (Exception e) {
+        if (sendGridApiKey == null || sendGridApiKey.isBlank()) {
             // Don't let email failures break the request flow (e.g. registration
-            // should still succeed even if SMTP creds aren't configured yet in dev).
+            // should still succeed even if SendGrid creds aren't configured yet in dev).
+            log.error("Failed to send email to {}: SENDGRID_API_KEY is not configured", toEmail);
+            return;
+        }
+
+        try {
+            Email from = new Email(fromEmail, fromName);
+            Email to = new Email(toEmail);
+            Content content = new Content("text/plain", text);
+            Mail mail = new Mail(from, subject, to, content);
+
+            SendGrid sg = new SendGrid(sendGridApiKey);
+            Request request = new Request();
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+
+            Response response = sg.api(request);
+            if (response.getStatusCode() >= 300) {
+                log.error("Failed to send email to {}: SendGrid returned status {} - {}",
+                        toEmail, response.getStatusCode(), response.getBody());
+            }
+        } catch (IOException e) {
+            log.error("Failed to send email to {}: {}", toEmail, e.getMessage());
+        } catch (Exception e) {
             log.error("Failed to send email to {}: {}", toEmail, e.getMessage());
         }
     }
