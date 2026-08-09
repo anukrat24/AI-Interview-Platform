@@ -21,7 +21,10 @@ public class OpenAiClient {
     @Value("${gemini.model:gemini-flash-latest}")
     private String model;
 
-    public OpenAiClient(@Value("${gemini.base-url:https://generativelanguage.googleapis.com/v1beta/models}") String baseUrl) {
+    public OpenAiClient(
+            @Value("${gemini.base-url:https://generativelanguage.googleapis.com/v1beta}")
+            String baseUrl) {
+
         this.restClient = RestClient.builder()
                 .baseUrl(baseUrl)
                 .build();
@@ -42,53 +45,81 @@ public class OpenAiClient {
                                 "parts", new Object[]{
                                         Map.of(
                                                 "text",
-                                                systemPrompt +
-                                                        "\n\nIMPORTANT: Respond ONLY with valid JSON.\n\n"
+                                                systemPrompt
+                                                        + "\n\nIMPORTANT: Respond ONLY with valid JSON.\n\n"
                                                         + userPrompt
                                         )
                                 }
                         )
                 },
-                // after
                 "generationConfig", Map.of(
                         "temperature", 0.7,
                         "responseMimeType", "application/json",
-                        "maxOutputTokens", 4096,
-                        "thinkingConfig", Map.of("thinkingBudget", 0)
-
+                        "maxOutputTokens", 4096
                 )
         );
 
         String rawResponse;
 
         try {
+
             rawResponse = restClient.post()
-                    .uri("/models/" + model + ":generateContent?key=" + apiKey)
+                    .uri("/models/" + model + ":generateContent")
+                    .header("x-goog-api-key", apiKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(body)
                     .retrieve()
                     .body(String.class);
 
         } catch (Exception e) {
-            throw new AiServiceException("Could not reach Gemini: " + e.getMessage(), e);
+            throw new AiServiceException(
+                    "Could not reach Gemini: " + e.getMessage(),
+                    e
+            );
         }
 
         try {
 
             JsonNode root = mapper.readTree(rawResponse);
 
-            String content = root.path("candidates")
-                    .get(0)
+            JsonNode candidates = root.path("candidates");
+
+            if (!candidates.isArray() || candidates.isEmpty()) {
+                throw new AiServiceException(
+                        "Gemini returned no candidates: " + rawResponse
+                );
+            }
+
+            JsonNode parts = candidates.get(0)
                     .path("content")
-                    .path("parts")
-                    .get(0)
+                    .path("parts");
+
+            if (!parts.isArray() || parts.isEmpty()) {
+                throw new AiServiceException(
+                        "Gemini returned no content: " + rawResponse
+                );
+            }
+
+            String content = parts.get(0)
                     .path("text")
                     .asText();
 
+            if (content == null || content.isBlank()) {
+                throw new AiServiceException(
+                        "Gemini returned empty content: " + rawResponse
+                );
+            }
+
             return mapper.readTree(content);
 
+        } catch (AiServiceException e) {
+            throw e;
+
         } catch (Exception e) {
-            throw new AiServiceException("Failed to parse Gemini JSON response: " + e.getMessage(), e);
+            throw new AiServiceException(
+                    "Failed to parse Gemini JSON response: " + e.getMessage(),
+                    e
+            );
         }
     }
 
@@ -122,30 +153,54 @@ public class OpenAiClient {
         try {
 
             rawResponse = restClient.post()
-                    .uri("/" + model + ":generateContent?key=" + apiKey)
+                    .uri("/models/" + model + ":generateContent")
+                    .header("x-goog-api-key", apiKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(body)
                     .retrieve()
                     .body(String.class);
 
         } catch (Exception e) {
-            throw new AiServiceException("Could not reach Gemini: " + e.getMessage(), e);
+            throw new AiServiceException(
+                    "Could not reach Gemini: " + e.getMessage(),
+                    e
+            );
         }
 
         try {
 
             JsonNode root = mapper.readTree(rawResponse);
 
-            return root.path("candidates")
-                    .get(0)
+            JsonNode candidates = root.path("candidates");
+
+            if (!candidates.isArray() || candidates.isEmpty()) {
+                throw new AiServiceException(
+                        "Gemini returned no candidates: " + rawResponse
+                );
+            }
+
+            JsonNode parts = candidates.get(0)
                     .path("content")
-                    .path("parts")
-                    .get(0)
+                    .path("parts");
+
+            if (!parts.isArray() || parts.isEmpty()) {
+                throw new AiServiceException(
+                        "Gemini returned no content: " + rawResponse
+                );
+            }
+
+            return parts.get(0)
                     .path("text")
                     .asText();
 
+        } catch (AiServiceException e) {
+            throw e;
+
         } catch (Exception e) {
-            throw new AiServiceException("Failed to parse Gemini response: " + e.getMessage(), e);
+            throw new AiServiceException(
+                    "Failed to parse Gemini response: " + e.getMessage(),
+                    e
+            );
         }
     }
 }
