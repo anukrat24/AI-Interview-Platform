@@ -63,6 +63,20 @@ public class OpenAiClient {
 
         try {
 
+            // TEMPORARY DIAGNOSTIC - does NOT print the actual API key
+            System.out.println(
+                    "GEMINI KEY CHECK: present="
+                            + (apiKey != null && !apiKey.isBlank())
+                            + ", length="
+                            + (apiKey == null ? 0 : apiKey.length())
+                            + ", prefix="
+                            + (
+                            apiKey != null && apiKey.length() >= 4
+                                    ? apiKey.substring(0, 4)
+                                    : "NONE"
+                    )
+            );
+
             rawResponse = restClient.post()
                     .uri("/models/" + model + ":generateContent")
                     .header("x-goog-api-key", apiKey)
