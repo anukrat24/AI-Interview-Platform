@@ -7,6 +7,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Map;
 
 @Component
@@ -63,19 +65,9 @@ public class OpenAiClient {
 
         try {
 
-            // TEMPORARY DIAGNOSTIC - does NOT print the actual API key
-            System.out.println(
-                    "GEMINI KEY CHECK: present="
-                            + (apiKey != null && !apiKey.isBlank())
-                            + ", length="
-                            + (apiKey == null ? 0 : apiKey.length())
-                            + ", prefix="
-                            + (
-                            apiKey != null && apiKey.length() >= 4
-                                    ? apiKey.substring(0, 4)
-                                    : "NONE"
-                    )
-            );
+            // TEMPORARY DIAGNOSTIC
+            // Prints only a SHA-256 fingerprint, never the actual API key.
+            printGeminiKeyFingerprint();
 
             rawResponse = restClient.post()
                     .uri("/models/" + model + ":generateContent")
@@ -131,7 +123,8 @@ public class OpenAiClient {
 
         } catch (Exception e) {
             throw new AiServiceException(
-                    "Failed to parse Gemini JSON response: " + e.getMessage(),
+                    "Failed to parse Gemini JSON response: "
+                            + e.getMessage(),
                     e
             );
         }
@@ -152,7 +145,9 @@ public class OpenAiClient {
                                 "parts", new Object[]{
                                         Map.of(
                                                 "text",
-                                                systemPrompt + "\n\n" + userPrompt
+                                                systemPrompt
+                                                        + "\n\n"
+                                                        + userPrompt
                                         )
                                 }
                         )
@@ -212,8 +207,46 @@ public class OpenAiClient {
 
         } catch (Exception e) {
             throw new AiServiceException(
-                    "Failed to parse Gemini response: " + e.getMessage(),
+                    "Failed to parse Gemini response: "
+                            + e.getMessage(),
                     e
+            );
+        }
+    }
+
+    /**
+     * Prints a safe fingerprint of the Gemini API key.
+     *
+     * The actual API key is NEVER printed.
+     * This allows us to compare the local key with the Railway key.
+     */
+    private void printGeminiKeyFingerprint() {
+
+        try {
+
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+            byte[] hash = md.digest(
+                    apiKey.getBytes(StandardCharsets.UTF_8)
+            );
+
+            StringBuilder fingerprint = new StringBuilder();
+
+            for (byte b : hash) {
+                fingerprint.append(
+                        String.format("%02x", b)
+                );
+            }
+
+            System.out.println(
+                    "GEMINI KEY FINGERPRINT: "
+                            + fingerprint
+            );
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "GEMINI KEY FINGERPRINT: FAILED"
             );
         }
     }
